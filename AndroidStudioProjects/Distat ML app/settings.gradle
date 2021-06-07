@@ -1,0 +1,2 @@
+rootProject.name = "DistatMlFlask2"
+include ':app'
