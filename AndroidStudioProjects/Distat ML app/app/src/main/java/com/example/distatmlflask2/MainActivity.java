@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -30,6 +31,10 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -65,6 +70,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_main);
+        if (android.os.Build.VERSION.SDK_INT > 9)
+        {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+        }
+
         Spinner dynamicSpinner = (Spinner) findViewById(R.id.dynamic_part_spinner);
 
         String[] items = new String[] { "Short Screw", "Long Screw", "Bolt" };
@@ -86,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    public void connectServer(View v) {
+    public void connectServer(View v) throws JSONException {
         TextView responseText = findViewById(R.id.responseText);
         if (!imagesSelected) { // This means no image is selected and thus nothing to upload.
             responseText.setText("No Image Selected to Upload. Select Image(s) and Try Again.");
@@ -110,13 +121,18 @@ public class MainActivity extends AppCompatActivity {
         options.inPreferredConfig = Bitmap.Config.RGB_565;
         // Read BitMap by file path
         Bitmap bitmap = BitmapFactory.decodeFile(selectedImagePath, options);
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 0, stream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
         byte[] byteArray = stream.toByteArray();
         @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String img_name = "IMG_"+ timeStamp +".jpg";
+        JSONObject json_builder = new JSONObject();
+        json_builder.put("partID","partID");
+        json_builder.put("imageName", img_name);
 
         RequestBody postBodyImage = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart("image", "IMG_"+ timeStamp +".jpg", RequestBody.create(MediaType.parse("image/*jpg"), byteArray))
+                .addFormDataPart("image",img_name, RequestBody.create(MediaType.parse("image/*jpg"), byteArray))
+                .addFormDataPart("json", json_builder.toString())
                 .build();
 
         responseText.setText("Please wait ...");
