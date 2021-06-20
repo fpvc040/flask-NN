@@ -73,13 +73,6 @@
         android:layout_height="wrap_content"
         android:text="Connect to Server"
         android:onClick="connectServer"/>
-        
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Connect to database"
-        android:onClick="connectDatabase"/>
-
 
 
     <TextView
